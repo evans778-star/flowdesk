@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Java 21 Maven Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            mvnw: ./mvnw
+            prepare: chmod +x mvnw
+          - os: windows-latest
+            mvnw: .\mvnw.cmd
+            prepare: echo "Maven Wrapper is executable on Windows"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Prepare Maven Wrapper
+        run: ${{ matrix.prepare }}
+
+      - name: Whitespace check
+        run: git diff --check
+
+      - name: High-confidence secret scan
+        shell: pwsh
+        run: |
+          $patterns = @(
+            'AKIA[0-9A-Z]{16}',
+            '-----BEGIN (RSA |DSA |EC |OPENSSH |)PRIVATE KEY-----',
+            'sk-[A-Za-z0-9]{20,}'
+          )
+          $failed = $false
+          foreach ($pattern in $patterns) {
+            $matches = git grep -n -I -E -e $pattern -- . 2>$null
+            if ($LASTEXITCODE -eq 0) {
+              $matches
+              $failed = $true
+            } elseif ($LASTEXITCODE -ne 1) {
+              exit $LASTEXITCODE
+            }
+          }
+          if ($failed) {
+            Write-Error "High-confidence secret pattern found."
+            exit 1
+          }
+          exit 0
+
+      - name: Test
+        run: ${{ matrix.mvnw }} -B test
+
+      - name: Package
+        run: ${{ matrix.mvnw }} -B package

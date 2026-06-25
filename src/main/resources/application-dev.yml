@@ -1,0 +1,75 @@
+# Flowdesk local development configuration.
+# This profile is public-safe. Set local values with environment variables
+# or with an ignored application-local.yml file.
+
+spring:
+  autoconfigure:
+    exclude:
+      - com.alibaba.cloud.nacos.NacosConfigAutoConfiguration
+      - com.alibaba.cloud.nacos.endpoint.NacosConfigEndpointAutoConfiguration
+
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:127.0.0.1}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:Flowdesk}
+
+    redis:
+      client-type: ${REDIS_CLIENT_TYPE:lettuce}
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  security:
+    user:
+      name: ${FLOWDESK_ADMIN_USER:}
+      password: ${FLOWDESK_ADMIN_PASSWORD:}
+
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:}
+
+  cloud:
+    nacos:
+      config:
+        enabled: false
+      discovery:
+        enabled: false
+
+dashscope:
+  api-key: ${DASHSCOPE_API_KEY:}
+
+jwt:
+  secret: ${JWT_SECRET:}
+
+flowdesk:
+  ai:
+    enabled: ${FLOWDESK_AI_ENABLED:false}
+    provider: ${FLOWDESK_AI_PROVIDER:ollama}
+    embedding-dimension: ${FLOWDESK_AI_EMBEDDING_DIMENSION:0}
+    vector-index-name: ${FLOWDESK_AI_VECTOR_INDEX_NAME:}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat-model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
+      embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+      timeout: ${OLLAMA_TIMEOUT:30s}
+  user:
+    default-password: ${FLOWDESK_USER_DEFAULT_PASSWORD:}
+
+logging:
+  level:
+    com.aiwork.helper: ${LOG_LEVEL_APP:DEBUG}
+    org.springframework.data.mongodb: ${LOG_LEVEL_MONGODB:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
+
+management:
+  endpoint:
+    health:
+      show-details: always
