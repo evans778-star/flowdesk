@@ -67,6 +67,9 @@ flowdesk:
       timeout: ${OLLAMA_TIMEOUT:30s}
   user:
     default-password: ${FLOWDESK_USER_DEFAULT_PASSWORD:}
+  mcp:
+    enabled: ${FLOWDESK_MCP_ENABLED:false}
+    write-tools-enabled: ${FLOWDESK_MCP_WRITE_TOOLS_ENABLED:false}
 
 upload:
   save-path: ${UPLOAD_SAVE_PATH:upload/}

@@ -1,17 +1,66 @@
 # Flowdesk
 
+Java 21 / Spring Boot 3 AI Office Automation Backend with RAG, Citations, Ollama, DashScope and MCP Adapter.
+
 [![CI](https://github.com/evans778-star/flowdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/evans778-star/flowdesk/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Docker Compose](https://img.shields.io/badge/Docker%20Compose-MongoDB%20%2B%20Redis%20Stack-2496ED)
 
-> AI office automation backend template with Spring Boot 3, Java 21, DashScope/Ollama, MongoDB, Redis Stack, WebSocket, and RAG.
->
-> Flowdesk is a Java 21 / Spring Boot 3 backend template for AI office assistants, with users, departments, todos, approvals, chat, uploads, DashScope/Ollama, and Redis Stack knowledge retrieval.
+Flowdesk is a practical backend template for AI-assisted office workflows. It combines normal office automation APIs with local RAG, citations, an offline RAG quality lab, and an MCP-style adapter preview for AI developer clients.
 
-Run with DashScope in production-like cloud mode, or use Ollama for a no-key local AI demo.
-Flowdesk is designed as a practical backend starting point for teams that want to explore AI-assisted office workflows without mixing secrets, local state, and production configuration into the repository.
+Core capabilities:
+
+- User / department / group management
+- Todo / approval workflows
+- AI chat with DashScope or Ollama
+- Local RAG with Redis Stack / RediSearch
+- RAG citations and quality lab
+- MCP adapter preview for AI clients
+
+Quick start paths:
+
+- Local backend: start MongoDB and Redis Stack, then run the Spring Boot app.
+- RAG mode: enable Flowdesk AI and configure DashScope or Ollama embeddings.
+- MCP adapter mode: set `FLOWDESK_MCP_ENABLED=true`; keep `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=false` unless you intentionally test write tools.
+
+MCP preview example:
+
+```bash
+curl -X POST http://localhost:8888/v1/mcp/tools/flowdesk_search_knowledge/call \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"arguments":{"query":"What should employees do before taking leave?","topK":3}}'
+```
+
+Run with DashScope in production-like cloud mode, or use Ollama for a no-key local AI demo. Flowdesk is designed for demos, learning, and internal adaptation without mixing secrets, local state, and production configuration into the repository.
+
+## Try It in 5 Minutes
+
+```powershell
+docker compose up -d
+$env:FLOWDESK_AI_ENABLED="false"; $env:FLOWDESK_MCP_ENABLED="true"; $env:FLOWDESK_MCP_WRITE_TOOLS_ENABLED="false"
+.\mvnw.cmd spring-boot:run
+```
+
+Login with local placeholder credentials, then call the MCP preview:
+
+```bash
+curl http://localhost:8888/v1/mcp/tools \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+JSON-RPC preview:
+
+```bash
+curl -X POST http://localhost:8888/v1/mcp/jsonrpc \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"init-1","method":"initialize","params":{"protocolVersion":"2025-06-18"}}'
+```
+
+MCP is disabled unless `FLOWDESK_MCP_ENABLED=true`; write tools remain disabled unless `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=true`.
 
 ## Start Here
 
@@ -20,6 +69,9 @@ Flowdesk is designed as a practical backend starting point for teams that want t
 - [Architecture](docs/architecture.md)
 - [Configuration](docs/configuration.md)
 - [RAG guide](docs/rag.md)
+- [RAG Quality Lab](docs/rag-quality-lab.md)
+- [MCP adapter preview](docs/mcp.md)
+- [MCP client examples](docs/mcp-client-examples.md)
 - [Deployment notes](docs/deployment.md)
 
 ## What It Includes
@@ -29,6 +81,7 @@ Flowdesk is designed as a practical backend starting point for teams that want t
 - Todo and approval workflow APIs
 - WebSocket chat entry point
 - AI chat service and tool-calling integration
+- MCP-style HTTP adapter preview for AI developer tools
 - File upload with size, extension, MIME type, and path traversal checks
 - PDF parsing and Redis Stack / RediSearch based knowledge retrieval
 - DashScope cloud AI and Ollama local AI provider configuration
@@ -63,17 +116,22 @@ Flowdesk is designed as a practical backend starting point for teams that want t
 
 ```mermaid
 flowchart LR
-    Client["Frontend / API client"] --> API["Spring Boot API :8888"]
-    Client --> WS["WebSocket :9000/ws"]
+    RestClient["REST client"] --> API["Flowdesk Spring Boot API :8888"]
+    McpClient["MCP client"] --> McpHttp["MCP HTTP Preview /v1/mcp/tools"]
+    McpClient --> McpJsonRpc["MCP JSON-RPC Preview /v1/mcp/jsonrpc"]
     API --> Security["Spring Security + JWT"]
-    API --> Mongo["MongoDB business data"]
-    API --> Redis["Redis Stack / RediSearch"]
+    McpHttp --> Security
+    McpJsonRpc --> Security
+    Security --> Registry["MCP Tool Registry"]
+    Security --> Services["Todo / Approval / User services"]
+    Registry --> Services
+    Registry --> RAG["RAG / VectorStore"]
+    Services --> Mongo["MongoDB"]
+    RAG --> Redis["Redis Stack / RediSearch"]
     API --> Upload["Local upload storage"]
-    API --> Agent["AI service + tools"]
-    Agent --> AIProvider["DashScope or Ollama chat / embedding"]
-    Agent --> Redis
     Upload --> PDF["PDFBox parser"]
-    PDF --> Redis
+    PDF --> RAG
+    RAG --> Provider["DashScope / Ollama optional"]
 ```
 
 Main package layout:
@@ -229,6 +287,8 @@ Important environment variables:
 | `APP_CORS_ALLOWED_ORIGINS` | Allowed frontend origins | Production |
 | `UPLOAD_SAVE_PATH` | Upload storage directory | Optional |
 | `UPLOAD_HOST` | Public upload URL prefix | Optional |
+| `FLOWDESK_MCP_ENABLED` | Enables the MCP-style HTTP adapter preview | Optional, default `false` |
+| `FLOWDESK_MCP_WRITE_TOOLS_ENABLED` | Enables write-capable MCP tools such as todo creation | Optional, default `false` |
 | `FLOWDESK_TOMCAT_PROTOCOL` | Optional Tomcat connector protocol override, for example `org.apache.coyote.http11.Http11Nio2Protocol` on Windows hosts with selector loopback issues | Optional |
 
 If local jar startup fails on Windows with `Unable to establish loopback connection`, retry with:
@@ -249,6 +309,8 @@ java -jar target/flowdesk-1.0.0-SNAPSHOT.jar
 | Todo | `/v1/todo` | Todo CRUD, finish, records, list |
 | Approval | `/v1/approval` | Approval CRUD, disposal, list |
 | Chat | `/v1/chat` | AI chat entry point |
+| Knowledge chat | `/v1/knowledge/chat-with-citations` | AI chat response plus retrieved RAG citations |
+| MCP adapter preview | `/v1/mcp/tools` | Authenticated MCP-style HTTP tool listing and invocation, disabled by default |
 | Upload | `/v1/upload` | File upload |
 | Knowledge diagnostics | `/api/knowledge/diag` | Dev profile and `FLOWDESK_AI_ENABLED=true` only |
 | Memory diagnostics | `/api/debug/memory` | Dev profile and `FLOWDESK_AI_ENABLED=true` only |
@@ -274,7 +336,59 @@ Current RAG flow:
 4. Store document chunks and vectors in Redis Stack.
 5. Retrieve similar chunks for AI-assisted answers.
 
+RAG citation support is available at `POST /v1/knowledge/chat-with-citations`. The response keeps the normal chat `data` field and adds `citations` with `documentId`, `documentName`, `chunkId`, optional `score`, and a short `snippet`. Exact PDF page numbers are not available yet because the current splitter stores chunk indexes rather than page ranges, so `pageNumber` is returned as `null`.
+
+Example response:
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "chatType": 0,
+    "data": "Employees should notify their manager before taking leave.",
+    "citations": [
+      {
+        "documentId": "doc:knowledge_java:test-id",
+        "documentName": "sample-employee-handbook.pdf",
+        "chunkId": 0,
+        "pageNumber": null,
+        "score": 0.27,
+        "snippet": "Attendance policy requires employees to notify their manager."
+      }
+    ]
+  }
+}
+```
+
+The RAG Quality Lab provides offline checks for retrieval outputs and citation mapping without requiring real DashScope/Ollama credentials:
+
+```powershell
+.\mvnw.cmd "-Dtest=*Rag*,*Citation*,*Quality*" test
+```
+
+See [docs/rag-quality-lab.md](docs/rag-quality-lab.md) for the example dataset format.
+
 The RAG implementation is useful for local experimentation. If you change embedding providers or models, rebuild the knowledge index because vector dimensions may differ. Before production use, review retry behavior, timeout policies, observability, cost controls, and data retention requirements.
+
+## MCP Adapter Preview
+
+Flowdesk can expose a small MCP-style HTTP tool registry for AI developer clients:
+
+```powershell
+$env:FLOWDESK_MCP_ENABLED="true"
+$env:FLOWDESK_MCP_WRITE_TOOLS_ENABLED="false"
+```
+
+Available preview endpoints:
+
+- `GET /v1/mcp/tools`
+- `POST /v1/mcp/tools/{toolName}/call`
+- `POST /v1/mcp/jsonrpc`
+
+The JSON-RPC preview supports `initialize`, `ping`, `tools/list`, and `tools/call` for local smoke tests and bridge experiments. It is still not a full stdio, SSE, or Streamable HTTP MCP transport.
+
+The adapter is disabled by default, uses existing JWT authentication, and keeps write tools disabled unless explicitly enabled. Do not expose MCP endpoints directly to the public internet. See [docs/mcp.md](docs/mcp.md).
 
 ## Demo
 

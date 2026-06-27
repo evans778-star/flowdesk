@@ -49,6 +49,15 @@ $env:SPRING_PROFILES_ACTIVE="dev"
 | `FLOWDESK_USER_DEFAULT_PASSWORD` | Optional default password for created users |
 | `FLOWDESK_TOMCAT_PROTOCOL` | Optional Tomcat connector protocol override. Use `org.apache.coyote.http11.Http11Nio2Protocol` if a Windows host fails with `Unable to establish loopback connection`. |
 
+## MCP Adapter Options
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `FLOWDESK_MCP_ENABLED` | `false` | Enables the MCP-style HTTP and JSON-RPC adapter preview under `/v1/mcp/**` |
+| `FLOWDESK_MCP_WRITE_TOOLS_ENABLED` | `false` | Enables write-capable tools such as `flowdesk_create_todo` |
+
+Keep MCP disabled unless you are actively testing it. Do not expose MCP endpoints directly to public networks.
+
 ## AI Options
 
 | Variable | Default | Description |

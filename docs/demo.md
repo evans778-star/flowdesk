@@ -25,6 +25,8 @@ PowerShell:
 $env:SPRING_PROFILES_ACTIVE="dev"
 $env:FLOWDESK_AI_ENABLED="false"
 $env:FLOWDESK_AI_PROVIDER="ollama"
+$env:FLOWDESK_MCP_ENABLED="true"
+$env:FLOWDESK_MCP_WRITE_TOOLS_ENABLED="false"
 $env:DASHSCOPE_API_KEY="test-dashscope-api-key"
 $env:JWT_SECRET="replace-with-at-least-32-bytes-secret"
 $env:FLOWDESK_ADMIN_USER="flowdesk-local-owner"
@@ -38,7 +40,7 @@ $env:FLOWDESK_USER_DEFAULT_PASSWORD="local-only-user-password"
 ```
 
 Do not use real production values in examples, screenshots, issues, or commits.
-This baseline starts Flowdesk without loading AI provider beans. To test AI chat, embeddings, RAG, or AI diagnostics, enable either Ollama or DashScope.
+This baseline starts Flowdesk without loading AI provider beans and enables the read-only MCP preview. To test AI chat, embeddings, RAG, or AI diagnostics, enable either Ollama or DashScope.
 
 No-key Ollama demo:
 
@@ -100,7 +102,87 @@ Content-Type: application/json
 
 Copy the returned `token` into an `Authorization: Bearer <token>` header for protected APIs.
 
-## 5. Upload a File
+## 5. Try MCP Preview
+
+List HTTP MCP tools:
+
+```http
+GET http://localhost:8888/v1/mcp/tools
+Authorization: Bearer <jwt-token>
+```
+
+Initialize the JSON-RPC preview:
+
+```http
+POST http://localhost:8888/v1/mcp/jsonrpc
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "init-1",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18"
+  }
+}
+```
+
+Ping the JSON-RPC preview:
+
+```http
+POST http://localhost:8888/v1/mcp/jsonrpc
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "ping-1",
+  "method": "ping",
+  "params": {}
+}
+```
+
+List tools through the JSON-RPC preview:
+
+```http
+POST http://localhost:8888/v1/mcp/jsonrpc
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "tools/list",
+  "params": {}
+}
+```
+
+Call the safe upload metadata tool:
+
+```http
+POST http://localhost:8888/v1/mcp/jsonrpc
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "2",
+  "method": "tools/call",
+  "params": {
+    "name": "flowdesk_upload_document_metadata",
+    "arguments": {
+      "fileName": "sample-employee-handbook.pdf",
+      "contentType": "application/pdf",
+      "sizeBytes": 123456
+    }
+  }
+}
+```
+
+Write tools are intentionally blocked while `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=false`.
+
+## 6. Upload a File
 
 ```http
 POST http://localhost:8888/v1/upload/file
@@ -113,7 +195,7 @@ file=@./docs/examples/sample-employee-handbook.pdf
 You can use the synthetic sample PDF at `docs/examples/sample-employee-handbook.pdf`.
 Do not upload real internal documents to a public demo.
 
-## 6. Chat
+## 7. Chat
 
 ```http
 POST http://localhost:8888/v1/chat
@@ -129,7 +211,21 @@ Content-Type: application/json
 
 With `FLOWDESK_AI_ENABLED=false`, this call returns a clear AI-disabled message. To get a model response, restart with `FLOWDESK_AI_ENABLED=true` and either `FLOWDESK_AI_PROVIDER=ollama` with local Ollama running, or `FLOWDESK_AI_PROVIDER=dashscope` with a valid DashScope API key.
 
-## 7. Knowledge Diagnostics
+## 8. Optional RAG Demo
+
+RAG search requires Redis Stack and an embedding provider. With `FLOWDESK_AI_ENABLED=false`, the application still starts, but AI/RAG-backed tools may return an explicit unavailable response instead of calling a model.
+
+For a no-key RAG experiment, run Ollama locally and restart with:
+
+```powershell
+$env:FLOWDESK_AI_ENABLED="true"
+$env:FLOWDESK_AI_PROVIDER="ollama"
+$env:OLLAMA_BASE_URL="http://localhost:11434"
+$env:OLLAMA_CHAT_MODEL="qwen2.5:7b"
+$env:OLLAMA_EMBEDDING_MODEL="nomic-embed-text"
+```
+
+## 9. Knowledge Diagnostics
 
 The diagnostic endpoints are registered only under the `dev` profile when `FLOWDESK_AI_ENABLED=true`.
 If you switch embedding providers or models, clear and rebuild the local knowledge index before comparing RAG results.
@@ -144,7 +240,7 @@ GET http://localhost:8888/api/knowledge/diag/search?query=attendance%20policy
 Authorization: Bearer {{token}}
 ```
 
-## 8. Stop Local Dependencies
+## 10. Stop Local Dependencies
 
 ```powershell
 docker compose down

@@ -51,6 +51,122 @@ Content-Type: application/json
   "relationId": "local-demo"
 }
 
+### AI chat with RAG citations
+# Citations are empty when AI/RAG or Redis Stack retrieval is unavailable.
+POST {{baseUrl}}/v1/knowledge/chat-with-citations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "prompts": "What should employees do before taking leave?",
+  "chatType": 0,
+  "relationId": "local-demo"
+}
+
+### MCP tool list
+# Requires FLOWDESK_MCP_ENABLED=true and a valid JWT.
+GET {{baseUrl}}/v1/mcp/tools
+Authorization: Bearer {{token}}
+
+### MCP JSON-RPC: initialize
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-initialize",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18"
+  }
+}
+
+### MCP JSON-RPC: ping
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-ping",
+  "method": "ping",
+  "params": {}
+}
+
+### MCP call: search knowledge
+POST {{baseUrl}}/v1/mcp/tools/flowdesk_search_knowledge/call
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "arguments": {
+    "query": "What should employees do before taking leave?",
+    "topK": 3
+  }
+}
+
+### MCP JSON-RPC: tools/list
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-tools-list",
+  "method": "tools/list",
+  "params": {}
+}
+
+### MCP JSON-RPC: tools/call search knowledge
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-search-knowledge",
+  "method": "tools/call",
+  "params": {
+    "name": "flowdesk_search_knowledge",
+    "arguments": {
+      "query": "What should employees do before taking leave?",
+      "topK": 3
+    }
+  }
+}
+
+### MCP JSON-RPC: write tool disabled by default
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-create-todo-disabled",
+  "method": "tools/call",
+  "params": {
+    "name": "flowdesk_create_todo",
+    "arguments": {
+      "title": "Prepare demo notes",
+      "description": "This should be blocked unless write tools are enabled"
+    }
+  }
+}
+
+### MCP call: upload document metadata guidance
+POST {{baseUrl}}/v1/mcp/tools/flowdesk_upload_document_metadata/call
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "arguments": {
+    "fileName": "sample-employee-handbook.pdf",
+    "contentType": "application/pdf",
+    "sizeBytes": 123456
+  }
+}
+
 ### Knowledge status, dev profile only
 GET {{baseUrl}}/api/knowledge/diag/status
 Authorization: Bearer {{token}}

@@ -283,10 +283,11 @@ public class VectorStoreService {
                     bytes("SORTBY"),
                     bytes("score"),
                     bytes("RETURN"),
-                    bytes("3"),
+                    bytes("4"),
                     bytes("content"),
                     bytes("source"),
                     bytes("page"),
+                    bytes("score"),
                     bytes("DIALECT"),
                     bytes("2"));
 
@@ -476,6 +477,13 @@ public class VectorStoreService {
                         doc.setChunkIndex(0);
                     }
                     break;
+                case "score":
+                    try {
+                        doc.setScore(Double.parseDouble(fieldValue));
+                    } catch (NumberFormatException e) {
+                        doc.setScore(null);
+                    }
+                    break;
             }
         }
 
@@ -602,6 +610,7 @@ public class VectorStoreService {
         private String content;
         private String source;
         private int chunkIndex;
+        private Double score;
         private float[] embedding;
 
         public String getId() {
@@ -634,6 +643,14 @@ public class VectorStoreService {
 
         public void setChunkIndex(int chunkIndex) {
             this.chunkIndex = chunkIndex;
+        }
+
+        public Double getScore() {
+            return score;
+        }
+
+        public void setScore(Double score) {
+            this.score = score;
         }
 
         public float[] getEmbedding() {

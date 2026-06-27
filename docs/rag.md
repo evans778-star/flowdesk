@@ -23,8 +23,61 @@ flowchart LR
 | --- | --- | --- |
 | PDF parsing | `ai.knowledge.PDFProcessor` | Extracts text and splits content into chunks |
 | Vector store | `ai.knowledge.VectorStoreService` | Handles Redis Stack / RediSearch storage and lookup |
+| Citations | `ai.knowledge.RagCitationMapper` | Converts retrieved chunks into public response citations |
+| Quality Lab | `ai.knowledge.RagQualityLabEvaluator` | Offline quality checks for retrieved chunks and citations |
 | AI tools | `ai.tools.KnowledgeTools` | Exposes knowledge retrieval to AI tool calls |
 | Diagnostics | `controller.KnowledgeDiagController` | Dev-only status/search diagnostics |
+
+## RAG With Citations
+
+Use `POST /v1/knowledge/chat-with-citations` to receive the normal AI answer plus the top retrieved source chunks as citations.
+
+Request:
+
+```json
+{
+  "prompts": "What should employees do before taking leave?",
+  "chatType": 0,
+  "relationId": "local-demo"
+}
+```
+
+Response shape:
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "chatType": 0,
+    "data": "Employees should notify their manager before taking leave.",
+    "citations": [
+      {
+        "documentId": "doc:knowledge_java:test-id",
+        "documentName": "sample-employee-handbook.pdf",
+        "chunkId": 0,
+        "pageNumber": null,
+        "score": 0.27,
+        "snippet": "Attendance policy requires employees to notify their manager."
+      }
+    ]
+  }
+}
+```
+
+`pageNumber` is currently `null` because the PDF splitter stores chunk index metadata, not exact PDF page ranges. `chunkId` identifies the stored chunk order for the source document.
+
+When `FLOWDESK_AI_ENABLED=false`, or when Redis Stack / embeddings are unavailable, the endpoint still returns a normal chat response and an empty `citations` array.
+
+## Quality Lab
+
+The offline Quality Lab lives in [rag-quality-lab.md](rag-quality-lab.md). It checks retrieved chunks against simple example cases without calling DashScope, Ollama, MongoDB, or Redis.
+
+Run:
+
+```powershell
+.\mvnw.cmd "-Dtest=*Rag*,*Citation*,*Quality*" test
+```
 
 ## Local Demo Asset
 

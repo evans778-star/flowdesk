@@ -1,0 +1,8 @@
+[
+  {
+    "query": "What should employees do before taking leave?",
+    "expectedKeywords": ["leave", "manager"],
+    "expectedSourceDocument": "sample-employee-handbook.pdf",
+    "notes": "Synthetic smoke case for the public demo handbook."
+  }
+]
