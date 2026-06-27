@@ -2,6 +2,14 @@
 
 This demo shows the shortest local loop for evaluating Flowdesk. It uses placeholder credentials and assumes a local development environment.
 
+For the Docker-based 10-minute path that starts MongoDB, Redis Stack, and the backend together, see [Demo Pack](demo-pack.md):
+
+```powershell
+.\mvnw.cmd package
+docker compose -f docker-compose.demo.yml up -d --build
+.\scripts\demo-smoke.ps1
+```
+
 ## 1. Start Dependencies
 
 From the repository root:

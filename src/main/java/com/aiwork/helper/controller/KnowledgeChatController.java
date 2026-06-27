@@ -8,6 +8,8 @@ import com.aiwork.helper.dto.response.ChatResponse;
 import com.aiwork.helper.dto.response.CitationResponse;
 import com.aiwork.helper.security.SecurityUtils;
 import com.aiwork.helper.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -22,6 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/knowledge")
 @RequiredArgsConstructor
+@Tag(name = "Knowledge RAG", description = "Knowledge-base chat with citation metadata")
 public class KnowledgeChatController {
 
     private static final int DEFAULT_TOP_K = 3;
@@ -31,6 +34,7 @@ public class KnowledgeChatController {
     private final RagCitationMapper citationMapper;
 
     @PostMapping("/chat-with-citations")
+    @Operation(summary = "Chat with citations", description = "Returns an AI answer plus RAG citation metadata when local retrieval is available.")
     public ApiResponse<ChatResponse> chatWithCitations(@RequestBody ChatRequest request) {
         String userId = SecurityUtils.getCurrentUserId();
         String prompt = request.getPrompts();

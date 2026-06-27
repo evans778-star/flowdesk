@@ -37,6 +37,11 @@ jobs:
           java-version: "21"
           cache: maven
 
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Prepare Maven Wrapper
         run: ${{ matrix.prepare }}
 
@@ -69,6 +74,9 @@ jobs:
 
       - name: Test
         run: ${{ matrix.mvnw }} -B test
+
+      - name: Test MCP bridge
+        run: node --test tools/mcp-bridge/test/bridge.test.js
 
       - name: Package
         run: ${{ matrix.mvnw }} -B package

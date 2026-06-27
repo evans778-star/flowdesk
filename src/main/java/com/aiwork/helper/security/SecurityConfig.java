@@ -111,7 +111,7 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
 
         // 暴露的响应头
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "websocket"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "websocket", "X-Request-Id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -14,93 +14,77 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
-/**
- * 全局异常处理器
- * 捕获所有Controller抛出的异常，返回统一格式的错误响应
- */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * 处理业务异常
-     */
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleBusinessException(BusinessException e) {
-        log.error("Business exception: {}", e.getMessage(), e);
+        log.warn("Business exception: code={}, message={}", e.getCode(), sanitizeForLog(e.getMessage()));
         return Result.fail(e.getCode(), e.getMessage());
     }
 
-    /**
-     * 处理参数校验异常 (MethodArgumentNotValidException)
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleValidationException(MethodArgumentNotValidException e) {
-        log.error("Validation exception: {}", e.getMessage());
+        log.warn("Validation exception: fieldErrorCount={}", e.getBindingResult().getFieldErrorCount());
         String errorMsg = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         return Result.fail(errorMsg);
     }
 
-    /**
-     * 处理参数绑定异常 (BindException)
-     */
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleBindException(BindException e) {
-        log.error("Bind exception: {}", e.getMessage());
+        log.warn("Bind exception: fieldErrorCount={}", e.getFieldErrorCount());
         String errorMsg = e.getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         return Result.fail(errorMsg);
     }
 
-    /**
-     * 处理非法参数异常
-     */
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error("Illegal argument exception: {}", e.getMessage(), e);
+        log.warn("Illegal argument exception: {}", sanitizeForLog(e.getMessage()));
         return Result.fail(e.getMessage());
     }
 
-    /**
-     * 处理访问拒绝异常 (无权限)
-     */
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleAccessDeniedException(AccessDeniedException e) {
-        log.error("Access denied: {}", e.getMessage());
-        return Result.fail(403, "没有访问权限");
+        log.warn("Access denied: {}", sanitizeForLog(e.getMessage()));
+        return Result.fail(403, "Access denied");
     }
 
-    /**
-     * 处理认证失败异常 (用户名或密码错误)
-     */
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleBadCredentialsException(BadCredentialsException e) {
-        log.error("Bad credentials: {}", e.getMessage());
-        return Result.fail("用户名或密码错误");
+        log.warn("Bad credentials");
+        return Result.fail("Bad credentials");
     }
 
-    /**
-     * 处理所有其他异常
-     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.OK)
     public Result<?> handleException(Exception e) {
-        log.error("Unexpected exception: {}", e.getMessage(), e);
+        log.error("Unexpected exception: type={}, message={}", e.getClass().getName(), sanitizeForLog(e.getMessage()));
+        return Result.fail(500, "System error");
+    }
 
-        Throwable cause = e;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
+    private String sanitizeForLog(String message) {
+        if (message == null) {
+            return "";
         }
-
-        return Result.fail(500, cause.getMessage() != null ? cause.getMessage() : "系统错误");
+        String sanitized = message
+                .replaceAll("(?i)[a-z][a-z0-9+.-]*://[^\\s,;]+", "<url-redacted>")
+                .replaceAll("(?i)(password|passwd|pwd)\\s*[=:]\\s*[^\\s,;]+", "$1=<redacted>")
+                .replaceAll("(?i)(token|secret|api[-_]?key)\\s*[=:]\\s*[^\\s,;]+", "$1=<redacted>")
+                .replaceAll("(?i)bearer\\s+[A-Za-z0-9._~+/=-]+", "Bearer <redacted>");
+        if (sanitized.length() > 256) {
+            return sanitized.substring(0, 256) + "...";
+        }
+        return sanitized;
     }
 }

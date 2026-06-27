@@ -14,12 +14,22 @@ The official MCP tools specification uses JSON-RPC methods such as `initialize`,
 | --- | --- | --- |
 | HTTP tool registry | Preview | `GET /v1/mcp/tools` and `POST /v1/mcp/tools/{toolName}/call` remain available for existing clients. |
 | JSON-RPC envelope | Preview | `POST /v1/mcp/jsonrpc` returns JSON-RPC 2.0 responses. |
+| stdio bridge preview | Preview | `tools/mcp-bridge/flowdesk-mcp-bridge.js` forwards local stdio JSON-RPC requests to Flowdesk HTTP JSON-RPC. |
 | `initialize` | Preview | Returns protocol version, server info, and tool capabilities. |
 | `ping` | Preview | Returns an empty JSON-RPC result for smoke checks. |
 | `tools/list` | Preview | Returns tool metadata with `inputSchema`, `outputSchema`, and annotations. |
 | `tools/call` | Preview | Calls registered Flowdesk tools and wraps tool errors in `isError=true` results. |
 | stdio transport | Not implemented | Use a bridge process if a client only supports stdio MCP servers. |
 | SSE / Streamable HTTP transport | Not implemented | Planned for a later standard transport phase. |
+
+Current status:
+
+| Surface | Status | Intended audience |
+| --- | --- | --- |
+| HTTP MCP Adapter Preview | Available | HTTP-capable internal tools and demos. |
+| JSON-RPC Preview | Available | Bridge experiments and protocol-shape smoke tests. |
+| stdio bridge preview | Available | Claude Desktop, Cursor, Codex, or similar clients that launch a local command. |
+| full MCP transport status | Future work | Native stdio, SSE, or Streamable HTTP server support. |
 
 ## Safety Defaults
 
@@ -482,6 +492,27 @@ For JSON-RPC-capable clients that allow a custom HTTP endpoint, use:
 ```
 
 This is still a preview endpoint. It implements a minimal JSON-RPC compatibility surface for `initialize`, `ping`, `tools/list`, and `tools/call`, but it does not implement a full MCP stdio, SSE, or Streamable HTTP transport.
+
+For command-based MCP clients, use the local stdio bridge preview:
+
+```json
+{
+  "mcpServers": {
+    "flowdesk": {
+      "command": "node",
+      "args": [
+        "D:/flowdesk/AIWorkHelper-Java/flowdesk/tools/mcp-bridge/flowdesk-mcp-bridge.js"
+      ],
+      "env": {
+        "FLOWDESK_MCP_BRIDGE_BASE_URL": "http://localhost:8888",
+        "FLOWDESK_MCP_BRIDGE_TOKEN": "<jwt-token>"
+      }
+    }
+  }
+}
+```
+
+The bridge is a local preview that maps stdio JSON-RPC requests to `POST /v1/mcp/jsonrpc`. It does not make the Flowdesk backend itself a full native MCP transport. Keep the token short-lived, do not log it, and use the bridge only on a trusted local machine or trusted network.
 
 ## Verification
 

@@ -2,6 +2,8 @@ package com.aiwork.helper.mcp;
 
 import com.aiwork.helper.dto.response.ApiResponse;
 import com.aiwork.helper.mcp.tool.FlowdeskMcpToolRegistry;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/v1/mcp")
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "flowdesk.mcp", name = "enabled", havingValue = "true")
+@Tag(name = "MCP Adapter", description = "HTTP and JSON-RPC preview adapter for Flowdesk MCP tools")
 public class McpController {
 
     private static final String SUPPORTED_PROTOCOL_VERSION = "2025-06-18";
@@ -28,11 +31,13 @@ public class McpController {
     private final FlowdeskMcpToolRegistry toolRegistry;
 
     @GetMapping("/tools")
+    @Operation(summary = "List MCP tools", description = "Returns available Flowdesk tool definitions, input schemas, and permission metadata.")
     public ApiResponse<List<McpToolDefinition>> listTools() {
         return ApiResponse.success(toolRegistry.listTools());
     }
 
     @PostMapping("/tools/{toolName}/call")
+    @Operation(summary = "Call MCP tool over HTTP", description = "Executes one MCP adapter preview tool and returns a structured tool response.")
     public ApiResponse<McpToolCallResponse> callTool(
             @PathVariable String toolName,
             @RequestBody McpToolCallRequest request
@@ -41,6 +46,7 @@ public class McpController {
     }
 
     @PostMapping("/jsonrpc")
+    @Operation(summary = "Call MCP JSON-RPC preview", description = "Supports initialize, ping, tools/list, and tools/call for bridge clients.")
     public McpJsonRpcResponse jsonRpc(@RequestBody McpJsonRpcRequest request) {
         if (request == null || !"2.0".equals(request.getJsonrpc()) || request.getMethod() == null) {
             Object id = request != null ? request.getId() : null;

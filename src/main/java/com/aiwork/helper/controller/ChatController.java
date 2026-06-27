@@ -5,6 +5,8 @@ import com.aiwork.helper.dto.response.ApiResponse;
 import com.aiwork.helper.dto.response.ChatResponse;
 import com.aiwork.helper.security.SecurityUtils;
 import com.aiwork.helper.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/chat")
 @RequiredArgsConstructor
+@Tag(name = "AI Chat", description = "AI chat endpoint backed by optional DashScope or Ollama providers")
 public class ChatController {
 
     private final ChatService chatService;
@@ -27,6 +30,7 @@ public class ChatController {
      * @return 统一响应格式包装的聊天响应
      */
     @PostMapping
+    @Operation(summary = "Chat with AI", description = "Sends a prompt to the configured AI provider. Real answers require DashScope or Ollama configuration.")
     public ApiResponse<ChatResponse> chat(@RequestBody ChatRequest request) {
         // 获取当前登录用户ID
         String userId = SecurityUtils.getCurrentUserId();

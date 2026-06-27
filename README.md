@@ -1,6 +1,6 @@
 # Flowdesk
 
-Java 21 / Spring Boot 3 AI Office Automation Backend with RAG, Citations, Ollama, DashScope and MCP Adapter.
+Java 21 / Spring Boot 3 AI Office Automation Backend with RAG Citations, Ollama/DashScope, MCP Adapter, and Demo Pack.
 
 [![CI](https://github.com/evans778-star/flowdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/evans778-star/flowdesk/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-blue)
@@ -8,7 +8,9 @@ Java 21 / Spring Boot 3 AI Office Automation Backend with RAG, Citations, Ollama
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Docker Compose](https://img.shields.io/badge/Docker%20Compose-MongoDB%20%2B%20Redis%20Stack-2496ED)
 
-Flowdesk is a practical backend template for AI-assisted office workflows. It combines normal office automation APIs with local RAG, citations, an offline RAG quality lab, and an MCP-style adapter preview for AI developer clients.
+Flowdesk is a practical backend template for AI-assisted office workflows. It combines normal office automation APIs with local RAG, citations, an offline RAG quality lab, MCP HTTP/JSON-RPC previews, and a local stdio MCP bridge for AI developer clients.
+
+**Beta status:** this beta repository is ready for demos, learning, GitHub review, and internal template adaptation. It is not recommended for direct production use before you add RBAC, rate limits, real monitoring, backups, production storage, and deployment-specific security controls.
 
 Core capabilities:
 
@@ -18,12 +20,43 @@ Core capabilities:
 - Local RAG with Redis Stack / RediSearch
 - RAG citations and quality lab
 - MCP adapter preview for AI clients
+- Demo Pack with smoke verification
+- Request ID observability and production hardening docs
 
-Quick start paths:
+## Try It In 10 Minutes
 
-- Local backend: start MongoDB and Redis Stack, then run the Spring Boot app.
-- RAG mode: enable Flowdesk AI and configure DashScope or Ollama embeddings.
-- MCP adapter mode: set `FLOWDESK_MCP_ENABLED=true`; keep `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=false` unless you intentionally test write tools.
+Run local demo in 10 minutes with the Demo Pack:
+
+```powershell
+.\mvnw.cmd package
+docker compose -f docker-compose.demo.yml up -d --build
+.\scripts\demo-smoke.ps1
+```
+
+The demo compose starts MongoDB, Redis Stack, and the Flowdesk backend with AI disabled, MCP enabled, and write tools disabled. It uses local placeholder credentials only.
+Real AI chat still requires Ollama or DashScope, while the default demo path works without API keys.
+Real RAG retrieval requires Redis Stack + embedding provider configuration.
+
+## What Works Without API Keys
+
+| Capability | Works without API keys? | Notes |
+| --- | --- | --- |
+| Health/login/upload/MCP metadata | Yes | Covered by `scripts\demo-smoke.ps1`. |
+| JSON-RPC initialize/ping/tools/list | Yes | Requires local login token only. |
+| RAG citation response shape | Yes | The endpoint can return the `citations` field without real retrieval. |
+| Real AI answer | No | Requires Ollama or DashScope. |
+| Real vector retrieval | No | Requires Redis Stack + embedding provider. |
+
+## Release Readiness
+
+| Check | Status |
+| --- | --- |
+| CI | Java 21 Maven build on Linux and Windows. |
+| Tests | Unit and smoke-style tests run without real MongoDB, Redis, DashScope, or Ollama. |
+| Package | Spring Boot jar is built by Maven. |
+| Demo smoke | `scripts\demo-smoke.ps1` verifies health, login, MCP, and citation response shape. |
+| Secret scan | Broad scan is documented; high-confidence scan must be clean. |
+| Docs | Demo, MCP, RAG, production hardening, observability, and release docs are linked below. |
 
 MCP preview example:
 
@@ -36,21 +69,6 @@ curl -X POST http://localhost:8888/v1/mcp/tools/flowdesk_search_knowledge/call \
 
 Run with DashScope in production-like cloud mode, or use Ollama for a no-key local AI demo. Flowdesk is designed for demos, learning, and internal adaptation without mixing secrets, local state, and production configuration into the repository.
 
-## Try It in 5 Minutes
-
-```powershell
-docker compose up -d
-$env:FLOWDESK_AI_ENABLED="false"; $env:FLOWDESK_MCP_ENABLED="true"; $env:FLOWDESK_MCP_WRITE_TOOLS_ENABLED="false"
-.\mvnw.cmd spring-boot:run
-```
-
-Login with local placeholder credentials, then call the MCP preview:
-
-```bash
-curl http://localhost:8888/v1/mcp/tools \
-  -H "Authorization: Bearer <jwt-token>"
-```
-
 JSON-RPC preview:
 
 ```bash
@@ -61,10 +79,14 @@ curl -X POST http://localhost:8888/v1/mcp/jsonrpc \
 ```
 
 MCP is disabled unless `FLOWDESK_MCP_ENABLED=true`; write tools remain disabled unless `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=true`.
+See [docs/demo-pack.md](docs/demo-pack.md) for the Docker demo and [tools/mcp-bridge](tools/mcp-bridge) for the stdio bridge preview.
 
 ## Start Here
 
 - [Local demo](docs/demo.md)
+- [Demo Pack](docs/demo-pack.md)
+- [Demo walkthrough](docs/demo-walkthrough.md)
+- [Demo assets guide](docs/demo-assets.md)
 - [HTTP examples](docs/api-examples.http)
 - [Architecture](docs/architecture.md)
 - [Configuration](docs/configuration.md)
@@ -73,6 +95,10 @@ MCP is disabled unless `FLOWDESK_MCP_ENABLED=true`; write tools remain disabled 
 - [MCP adapter preview](docs/mcp.md)
 - [MCP client examples](docs/mcp-client-examples.md)
 - [Deployment notes](docs/deployment.md)
+- [Production hardening](docs/production-hardening.md)
+- [Observability](docs/observability.md)
+- [Release checklist](docs/release-checklist.md)
+- [Changelog](CHANGELOG.md)
 
 ## What It Includes
 
@@ -82,11 +108,13 @@ MCP is disabled unless `FLOWDESK_MCP_ENABLED=true`; write tools remain disabled 
 - WebSocket chat entry point
 - AI chat service and tool-calling integration
 - MCP-style HTTP adapter preview for AI developer tools
+- Local stdio MCP bridge preview for clients that launch command-based servers
 - File upload with size, extension, MIME type, and path traversal checks
 - PDF parsing and Redis Stack / RediSearch based knowledge retrieval
 - DashScope cloud AI and Ollama local AI provider configuration
 - Docker Compose for local MongoDB and Redis Stack
 - Swagger/OpenAPI UI for API exploration
+- Request correlation with `X-Request-Id` and MDC logging
 
 ## Use Cases
 

@@ -8,6 +8,8 @@ import com.aiwork.helper.exception.BusinessException;
 import com.aiwork.helper.repository.ChatLogRepository;
 import com.aiwork.helper.security.SecurityUtils;
 import com.aiwork.helper.service.AIService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +33,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/upload")
 @RequiredArgsConstructor
+@Tag(name = "File Upload", description = "Validated file upload APIs used by chat and knowledge workflows")
 public class UploadController {
 
     @Value("${upload.save-path:upload/}")
@@ -58,6 +61,7 @@ public class UploadController {
      * @param chat 可选参数，如果指定则将文件信息写入聊天记忆
      */
     @PostMapping("/file")
+    @Operation(summary = "Upload one file", description = "Uploads a validated file without accepting arbitrary server-side paths.")
     public Result<FileResponse> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "chat", required = false) String chat) {
@@ -162,6 +166,7 @@ public class UploadController {
      * @param files 上传的文件数组
      */
     @PostMapping("/multiplefiles")
+    @Operation(summary = "Upload multiple files", description = "Placeholder endpoint; currently returns a business error.")
     public Result<Void> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
         // TODO: 实现多文件上传功能
         throw new BusinessException("多文件上传功能暂未实现");

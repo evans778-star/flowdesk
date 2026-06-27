@@ -1,0 +1,73 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: flowdesk-demo-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - flowdesk-demo-mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: flowdesk-demo-redis-stack
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - flowdesk-demo-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  flowdesk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flowdesk-demo-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis-stack:
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+      - "9000:9000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8888
+      - WEBSOCKET_PORT=9000
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=Flowdesk
+      - REDIS_HOST=redis-stack
+      - REDIS_PORT=6379
+      - FLOWDESK_AI_ENABLED=false
+      - FLOWDESK_AI_PROVIDER=ollama
+      - FLOWDESK_MCP_ENABLED=true
+      - FLOWDESK_MCP_WRITE_TOOLS_ENABLED=false
+      - FLOWDESK_ADMIN_USER=flowdesk-local-owner
+      - FLOWDESK_ADMIN_PASSWORD=local-only-bootstrap-password
+      - FLOWDESK_USER_DEFAULT_PASSWORD=local-only-user-password
+      - JWT_SECRET=replace-with-at-least-32-bytes-demo-secret
+      - DASHSCOPE_API_KEY=test-dashscope-api-key
+      - UPLOAD_SAVE_PATH=/app/upload/
+      - UPLOAD_HOST=http://localhost:8888
+    volumes:
+      - flowdesk-demo-upload-data:/app/upload
+
+volumes:
+  flowdesk-demo-mongodb-data:
+  flowdesk-demo-redis-data:
+  flowdesk-demo-upload-data:

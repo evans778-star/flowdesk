@@ -8,6 +8,15 @@ Flowdesk currently exposes an authenticated HTTP MCP Adapter Preview and a JSON-
 
 It does not yet expose a full standard MCP stdio, SSE, or Streamable HTTP transport. Use these examples only with clients that support custom HTTP tools or custom JSON-RPC HTTP calls.
 
+## Current status
+
+| Capability | Status | How to use |
+| --- | --- | --- |
+| HTTP MCP Adapter Preview | Available | Call `/v1/mcp/tools` and `/v1/mcp/tools/{toolName}/call` with a Flowdesk JWT. |
+| JSON-RPC Preview | Available | Call `/v1/mcp/jsonrpc` with `initialize`, `ping`, `tools/list`, or `tools/call`. |
+| stdio bridge preview | Available | Launch `tools/mcp-bridge/flowdesk-mcp-bridge.js` from a local MCP client. |
+| full MCP transport status | Not implemented | Native stdio, SSE, and Streamable HTTP transports are future work. |
+
 ## Local Safety Checklist
 
 - Keep `FLOWDESK_MCP_ENABLED=false` unless you are actively testing.
@@ -129,6 +138,29 @@ Call a tool:
 
 Many MCP clients expect a real MCP transport such as stdio, SSE, or Streamable HTTP. The current Flowdesk endpoints are useful for local experimentation, HTTP-capable clients, and future adapter work, but they are not a drop-in Claude Desktop stdio server yet.
 
+The Node bridge preview lets command-based MCP clients launch a local stdio bridge that forwards JSON-RPC to Flowdesk's HTTP JSON-RPC Preview.
+
+Claude Desktop-style configuration:
+
+```json
+{
+  "mcpServers": {
+    "flowdesk": {
+      "command": "node",
+      "args": [
+        "D:/flowdesk/AIWorkHelper-Java/flowdesk/tools/mcp-bridge/flowdesk-mcp-bridge.js"
+      ],
+      "env": {
+        "FLOWDESK_MCP_BRIDGE_BASE_URL": "http://localhost:8888",
+        "FLOWDESK_MCP_BRIDGE_TOKEN": "<jwt-token>"
+      }
+    }
+  }
+}
+```
+
+Cursor and Codex-style clients that support command-based MCP servers can use the same command, args, and env values. Keep the token short-lived and local.
+
 When a client only accepts standard MCP server configuration, use this project as the backend target for a small bridge process, or wait until Flowdesk adds a standard transport module. The bridge should:
 
 - Authenticate to Flowdesk with a short-lived local token.
@@ -138,3 +170,11 @@ When a client only accepts standard MCP server configuration, use this project a
 - Map `tools/call` to `POST /v1/mcp/jsonrpc`.
 - Preserve Flowdesk's `isError` and `structuredContent` fields.
 - Avoid logging secrets or full JWTs.
+
+Safety limits:
+
+- Do not expose `/v1/mcp/**` directly to the public internet.
+- Do not pass server-local file paths to MCP tools.
+- Do not record or paste full tokens in logs, screenshots, or issues.
+- Keep `FLOWDESK_MCP_WRITE_TOOLS_ENABLED=false` for normal demos.
+- Use the bridge only for local demos or trusted networks.

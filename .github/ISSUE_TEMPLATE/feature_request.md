@@ -10,13 +10,21 @@ assignees: ""
 
 What problem would this solve?
 
-## Proposed Solution
+## Proposed solution
 
 Describe the smallest useful version of the feature.
 
 ## Alternatives Considered
 
 What other approaches did you consider?
+
+## Security impact
+
+Does this affect authentication, authorization, MCP tool access, file upload, logs, secrets, or data exposure?
+
+## Compatibility impact
+
+Does this change existing REST APIs, RAG behavior, MCP preview behavior, configuration, or deployment steps?
 
 ## Scope
 

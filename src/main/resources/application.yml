@@ -85,8 +85,8 @@ logging:
     org.springframework.data.mongodb: ${LOG_LEVEL_MONGODB:INFO}
     org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
   pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
-    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level requestId=%X{requestId:-} %logger{50} - %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level requestId=%X{requestId:-} %logger{50} - %msg%n'
   file:
     name: ${LOG_FILE:logs/Flowdesk.log}
     max-size: 10MB

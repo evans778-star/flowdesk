@@ -31,6 +31,12 @@ What happened instead?
 - Docker available: yes/no
 - Spring profile:
 - Branch or commit:
+- AI/MCP/RAG enabled:
+- Request ID if available:
+
+## Logs with secrets removed
+
+Paste only the smallest useful log excerpt. Remove API keys, JWTs, passwords, tokens, private URLs, local user paths, and production data.
 
 ## Verification
 
