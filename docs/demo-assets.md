@@ -4,13 +4,14 @@ Use this guide when preparing screenshots or short GIFs for GitHub, release note
 
 ## Recommended Screenshot List
 
+- README first screen.
 - README first viewport.
-- Swagger UI.
+- Swagger/OpenAPI page.
 - `/v3/api-docs`.
-- MCP tools/list JSON.
-- JSON-RPC initialize response.
-- RAG citation response.
 - demo-smoke PASS output.
+- MCP tools/list JSON response.
+- JSON-RPC initialize response.
+- RAG citations response.
 
 ## Recommended File Names
 
@@ -21,13 +22,18 @@ Use this guide when preparing screenshots or short GIFs for GitHub, release note
 
 ## Screenshot Safety Rules
 
+- Screenshots must not contain a real JWT.
 - Do not show a real token.
 - Do not show a real API key.
+- Do not show a real password.
 - Do not show a real private URL.
+- Do not show a local sensitive path.
 - Do not show real user data.
 - Do not show real company documents.
 - Replace authorization headers with `Bearer <jwt-token>`.
 - Use placeholder values such as `<placeholder>` or `demo-local-token`.
+- Every screenshot must pass human review before publication.
+- README should reference only reviewed images.
 
 ## Capture Notes
 

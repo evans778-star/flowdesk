@@ -58,6 +58,12 @@ Real RAG retrieval requires Redis Stack + embedding provider configuration.
 | Secret scan | Broad scan is documented; high-confidence scan must be clean. |
 | Docs | Demo, MCP, RAG, production hardening, observability, and release docs are linked below. |
 
+Release workflow docs:
+
+- [GitHub issue pack](docs/github-issue-pack.md)
+- [v0.1.0 release notes draft](docs/release-notes-v0.1.0.md)
+- [Roadmap](ROADMAP.md)
+
 MCP preview example:
 
 ```bash
@@ -98,6 +104,9 @@ See [docs/demo-pack.md](docs/demo-pack.md) for the Docker demo and [tools/mcp-br
 - [Production hardening](docs/production-hardening.md)
 - [Observability](docs/observability.md)
 - [Release checklist](docs/release-checklist.md)
+- [GitHub issue pack](docs/github-issue-pack.md)
+- [v0.1.0 release notes draft](docs/release-notes-v0.1.0.md)
+- [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
 
 ## What It Includes

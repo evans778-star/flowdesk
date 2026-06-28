@@ -6,6 +6,7 @@ All notable Flowdesk changes are tracked here. This project currently uses beta 
 
 - Continue hardening the beta release path with clearer documentation, CI checks, and demo verification.
 - Keep DashScope and Ollama optional so local verification can run without real model keys.
+- Add GitHub issue pack and v0.1.0 release notes draft for maintainer-led GitHub page publishing.
 
 ## v0.1.0-beta
 
