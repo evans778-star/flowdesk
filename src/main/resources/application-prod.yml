@@ -1,0 +1,74 @@
+# Flowdesk production configuration.
+# Set SPRING_PROFILES_ACTIVE=prod and provide all required values with environment variables.
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+    redis:
+      client-type: ${REDIS_CLIENT_TYPE:lettuce}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:16}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:1}
+          max-wait: ${REDIS_POOL_MAX_WAIT:2s}
+
+  security:
+    user:
+      name: ${FLOWDESK_ADMIN_USER}
+      password: ${FLOWDESK_ADMIN_PASSWORD}
+
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:}
+
+dashscope:
+  api-key: ${DASHSCOPE_API_KEY:}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+
+flowdesk:
+  ai:
+    enabled: ${FLOWDESK_AI_ENABLED}
+    provider: ${FLOWDESK_AI_PROVIDER}
+    embedding-dimension: ${FLOWDESK_AI_EMBEDDING_DIMENSION:0}
+    vector-index-name: ${FLOWDESK_AI_VECTOR_INDEX_NAME:}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat-model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
+      embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+      timeout: ${OLLAMA_TIMEOUT:30s}
+  user:
+    default-password: ${FLOWDESK_USER_DEFAULT_PASSWORD}
+
+upload:
+  save-path: ${UPLOAD_SAVE_PATH:upload/}
+  host: ${UPLOAD_HOST}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.aiwork.helper: ${LOG_LEVEL_APP:INFO}
+    org.springframework.data.mongodb: ${LOG_LEVEL_MONGODB:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

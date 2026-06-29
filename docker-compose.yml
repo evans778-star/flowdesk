@@ -1,0 +1,35 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: flowdesk-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - flowdesk-mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: flowdesk-redis-stack
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - flowdesk-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  flowdesk-mongodb-data:
+  flowdesk-redis-data:

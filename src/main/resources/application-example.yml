@@ -1,0 +1,80 @@
+# Flowdesk example configuration.
+# Copy values into environment variables or a local profile file. Do not commit real secrets.
+
+spring:
+  application:
+    name: Flowdesk
+
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: Flowdesk
+
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+
+  security:
+    user:
+      name: ${FLOWDESK_ADMIN_USER}
+      password: ${FLOWDESK_ADMIN_PASSWORD}
+
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      chat:
+        options:
+          model: qwen-max
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-v3
+
+dashscope:
+  api-key: ${DASHSCOPE_API_KEY}
+  base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  chat:
+    model: qwen-max
+    temperature: 0.7
+  embedding:
+    model: text-embedding-v3
+
+jwt:
+  secret: ${JWT_SECRET}
+  expire: 8640000
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+
+flowdesk:
+  ai:
+    enabled: ${FLOWDESK_AI_ENABLED:false}
+    provider: ${FLOWDESK_AI_PROVIDER:ollama}
+    embedding-dimension: ${FLOWDESK_AI_EMBEDDING_DIMENSION:0}
+    vector-index-name: ${FLOWDESK_AI_VECTOR_INDEX_NAME:}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat-model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
+      embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+      timeout: ${OLLAMA_TIMEOUT:30s}
+  user:
+    default-password: ${FLOWDESK_USER_DEFAULT_PASSWORD}
+
+server:
+  port: 8888
+
+websocket:
+  server:
+    port: 9000
+    path: /ws
+
+upload:
+  save-path: upload/
+  host: http://127.0.0.1:8888
+  max-file-size-bytes: 52428800
+  allowed-extensions: .pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.webp
+  allowed-content-types: application/pdf,text/plain,text/markdown,text/csv,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/png,image/jpeg,image/gif,image/webp

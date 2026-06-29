@@ -1,0 +1,18 @@
+# Reference metadata for publishing this repository on GitHub.
+# Update the URL placeholders after the repository owner/name is final.
+
+description: AI office automation backend template with Spring Boot 3, Java 21, DashScope, MongoDB, Redis Stack, WebSocket, and RAG.
+homepage: "https://github.com/evans778-star/flowdesk"
+license: MIT
+topics:
+  - spring-boot
+  - java21
+  - spring-ai
+  - spring-ai-alibaba
+  - dashscope
+  - rag
+  - ai-agent
+  - office-automation
+  - mongodb
+  - redis
+  - websocket

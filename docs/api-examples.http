@@ -1,0 +1,176 @@
+@baseUrl = http://localhost:8888
+@token = paste-login-token-here
+
+### Health
+GET {{baseUrl}}/actuator/health
+
+### Swagger OpenAPI JSON
+GET {{baseUrl}}/v3/api-docs
+
+### Login
+POST {{baseUrl}}/v1/user/login
+Content-Type: application/json
+
+{
+  "name": "flowdesk-local-owner",
+  "password": "local-only-bootstrap-password"
+}
+
+### Current demo user info
+# Replace the id with a real user id returned by login or user list.
+GET {{baseUrl}}/v1/user/example-user-id
+Authorization: Bearer {{token}}
+
+### User list
+GET {{baseUrl}}/v1/user/list?page=1&count=10
+Authorization: Bearer {{token}}
+
+### Upload a safe local sample file
+# Replace the file path with a synthetic public-safe file.
+POST {{baseUrl}}/v1/upload/file
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=flowdesk-demo
+
+--flowdesk-demo
+Content-Disposition: form-data; name="file"; filename="sample.txt"
+Content-Type: text/plain
+
+This is a public-safe synthetic demo document for Flowdesk.
+--flowdesk-demo--
+
+### AI chat
+# Works with FLOWDESK_AI_PROVIDER=ollama or dashscope when FLOWDESK_AI_ENABLED=true.
+# With AI disabled, the response contains a clear disabled message.
+POST {{baseUrl}}/v1/chat
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "prompts": "Create a short todo list for preparing a public GitHub release.",
+  "chatType": 0,
+  "relationId": "local-demo"
+}
+
+### AI chat with RAG citations
+# Citations are empty when AI/RAG or Redis Stack retrieval is unavailable.
+POST {{baseUrl}}/v1/knowledge/chat-with-citations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "prompts": "What should employees do before taking leave?",
+  "chatType": 0,
+  "relationId": "local-demo"
+}
+
+### MCP tool list
+# Requires FLOWDESK_MCP_ENABLED=true and a valid JWT.
+GET {{baseUrl}}/v1/mcp/tools
+Authorization: Bearer {{token}}
+
+### MCP JSON-RPC: initialize
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-initialize",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18"
+  }
+}
+
+### MCP JSON-RPC: ping
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-ping",
+  "method": "ping",
+  "params": {}
+}
+
+### MCP call: search knowledge
+POST {{baseUrl}}/v1/mcp/tools/flowdesk_search_knowledge/call
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "arguments": {
+    "query": "What should employees do before taking leave?",
+    "topK": 3
+  }
+}
+
+### MCP JSON-RPC: tools/list
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-tools-list",
+  "method": "tools/list",
+  "params": {}
+}
+
+### MCP JSON-RPC: tools/call search knowledge
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-search-knowledge",
+  "method": "tools/call",
+  "params": {
+    "name": "flowdesk_search_knowledge",
+    "arguments": {
+      "query": "What should employees do before taking leave?",
+      "topK": 3
+    }
+  }
+}
+
+### MCP JSON-RPC: write tool disabled by default
+POST {{baseUrl}}/v1/mcp/jsonrpc
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": "jsonrpc-create-todo-disabled",
+  "method": "tools/call",
+  "params": {
+    "name": "flowdesk_create_todo",
+    "arguments": {
+      "title": "Prepare demo notes",
+      "description": "This should be blocked unless write tools are enabled"
+    }
+  }
+}
+
+### MCP call: upload document metadata guidance
+POST {{baseUrl}}/v1/mcp/tools/flowdesk_upload_document_metadata/call
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "arguments": {
+    "fileName": "sample-employee-handbook.pdf",
+    "contentType": "application/pdf",
+    "sizeBytes": 123456
+  }
+}
+
+### Knowledge status, dev profile only
+GET {{baseUrl}}/api/knowledge/diag/status
+Authorization: Bearer {{token}}
+
+### Knowledge search, dev profile only
+GET {{baseUrl}}/api/knowledge/diag/search?query=public%20release
+Authorization: Bearer {{token}}
